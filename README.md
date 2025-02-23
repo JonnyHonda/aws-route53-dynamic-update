@@ -9,7 +9,7 @@ docker run \
   -e AWS_SECRET_ACCESS_KEY=YYYY \
   -e ZONEID=ZZZZZ \
   -e RECORDSET=some-name.example.com \
-  --rm -it ghcr.io/chrodriguez/aws-route53-dynamic-update
+  --rm -i jonnyb3010/aws-route53-dynamic-update:latest
 ```
 
 It can also admit the following environment variables:
@@ -21,60 +21,3 @@ It can also admit the following environment variables:
 * **TTL**: TTL of recordset. Defaults to 60 seconds
 * **TYPE**: which DNS record tu update. Defaults to A record
 
-
-## Example usage with kubernetes
-
-Credentials using secret
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: route53-credentials
-  namespace: kube-system
-stringData:
-  secret-access-key: YYYY
-  access-key-id: XXXX
-  zone-id: ZZZZZ
----
-apiVersion: batch/v1beta1
-kind: CronJob
-metadata:
-  labels:
-    application: dns-update
-  name: dns-update
-spec:
-  schedule: "@every 5m"
-  concurrencyPolicy: Forbid
-  jobTemplate:
-    spec:
-      backoffLimit: 4
-      template:
-        metadata:
-          labels:
-            application: dns-update
-        spec:
-          restartPolicy: Never #This allow to inspect possible POD errors
-          containers:
-          - name: dns-update
-            image: chrodriguez/aws-route53-dynamic-update
-            imagePullPolicy: Always
-            env:
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: route53-credentials
-                  key: access-key-id
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: route53-credentials
-                  key: secret-access-key
-            - name: ZONEID
-              valueFrom:
-                secretKeyRef:
-                  name: route53-credentials
-                  key: zone-id
-            - name: RECORDSET
-              value: some-name.example.com
-```

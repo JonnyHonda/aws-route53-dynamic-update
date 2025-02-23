@@ -1,5 +1,5 @@
 FROM alpine:3.17
-RUN apk add -U py-pip bash bind-tools \
+RUN apk add -U py-pip bash bind-tools curl \
   && adduser -S aws -s /bin/ash -h /aws
 ADD ./aws-route53-dynamic-update.sh /usr/local/bin/aws-route53-dynamic-update.sh
 USER aws
